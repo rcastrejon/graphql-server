@@ -1,6 +1,7 @@
 import { mutationField, objectType, stringArg, unionType } from '@nexus/schema';
 import { compare } from 'bcryptjs';
 import { isEmailValid } from '../../utils/isEmailValid';
+import { userSessionIdPrefix } from '../../constants';
 
 export const LoginSuccess = objectType({
   name: 'LoginSuccess',
@@ -32,6 +33,11 @@ export const LoginMutation = mutationField('login', {
     password: stringArg({ nullable: false }),
   },
   resolve: async (_, { email, password }, ctx) => {
+    // Check if there is a valid session
+    const { session } = ctx.request;
+    if (session.accountId) return { ok: true };
+
+    // Validate input
     const lowerEmail = email.toLowerCase();
     if (!password || !isEmailValid(lowerEmail))
       return { ok: false, message: 'Invalid input.' };
@@ -45,6 +51,13 @@ export const LoginMutation = mutationField('login', {
     if (!account) return { ok: false, message: 'Incorrect credentials.' };
     const valid = await compare(password, account.password);
     if (!valid) return { ok: false, message: 'Incorrect credentials.' };
+
+    // Create session
+    session.accountId = account.id;
+    await ctx.redis.lpush(
+      `${userSessionIdPrefix}${account.id}`,
+      session.sessionId
+    );
 
     return {
       ok: true,
