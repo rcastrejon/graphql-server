@@ -1,11 +1,11 @@
-import { makeSchema } from '@nexus/schema';
+import { fieldAuthorizePlugin, makeSchema } from '@nexus/schema';
 import { nexusPrisma } from 'nexus-plugin-prisma';
 import { join } from 'path';
 import * as types from './types';
 
 export const schema = makeSchema({
   types,
-  plugins: [nexusPrisma()],
+  plugins: [nexusPrisma(), fieldAuthorizePlugin()],
   outputs: {
     typegen: join(
       __dirname,

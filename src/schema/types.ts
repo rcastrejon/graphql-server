@@ -5,3 +5,4 @@ export * from './entities/Account';
 export * from './resolvers/register';
 export * from './resolvers/login';
 export * from './resolvers/logout';
+export * from './resolvers/hello';
